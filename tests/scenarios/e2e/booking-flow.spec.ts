@@ -9,9 +9,9 @@ test.describe('Booking flow (E2E)', () => {
 
   test('guest sees event types on the home page', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=30 min meeting')).toBeVisible();
-    await expect(page.locator('text=30 мин')).toBeVisible();
-    await expect(page.locator('text=Quick video call')).toBeVisible();
+    await expect(page.locator('text=30 min meeting').first()).toBeVisible();
+    await expect(page.locator('text=30 мин').first()).toBeVisible();
+    await expect(page.locator('text=Quick video call').first()).toBeVisible();
   });
 
   test('guest creates a booking through the UI', async ({ page, request }) => {
@@ -20,10 +20,10 @@ test.describe('Booking flow (E2E)', () => {
 
     // 1. Go to home page
     await page.goto('/');
-    await expect(page.locator('text=30 min meeting')).toBeVisible();
+    await expect(page.locator('text=30 min meeting').first()).toBeVisible();
 
     // 2. Click "Записаться"
-    await page.click('text=Записаться');
+    await page.locator('text=Записаться').first().click();
     await expect(page).toHaveURL(/\/event-types\//);
 
     // 3. Select the future date
@@ -31,8 +31,8 @@ test.describe('Booking flow (E2E)', () => {
     await dateButton.click();
 
     // 4. Wait for slots to appear and click first available slot
-    await expect(page.locator('button:has(text="09:00")')).toBeVisible({ timeout: 5000 });
-    await page.click('text=09:00');
+    await expect(page.locator('button:has(text="09:00")').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('text=09:00').first().click();
 
     // 5. Fill in guest name
     await page.fill('input[placeholder="Введите имя"]', 'Иван Петров');
@@ -48,29 +48,35 @@ test.describe('Booking flow (E2E)', () => {
 
   test('guest sees conflict toast when booking taken slot', async ({ page, request }) => {
     const date = futureDate(3);
-    const et = (await request.get('/api/event-types')).then((r) => r.json());
-
-    // book 10:00 slot via API
-    await request.post('/api/bookings', {
-      data: { eventTypeId: (await et)[0].id, guestName: 'Occupier', date, startTime: '10:00' },
-    });
-
-    await page.goto(`/event-types/${(await et)[0].id}`);
-
-    // select date
     const [year, month, day] = date.split('-');
+
+    const etRes = await request.get('/api/event-types');
+    const ets = await etRes.json();
+    const eventTypeId = ets[0].id;
+
+    // 1. Go to event type page while slot is free
+    await page.goto(`/event-types/${eventTypeId}`);
+
+    // 2. Select the future date
     const dateButton = page.locator(`button:has(text="${parseInt(day)}")`).first();
     await dateButton.click();
 
-    // select 10:00
-    await expect(page.locator('button:has(text="10:00")')).toBeVisible({ timeout: 5000 });
-    await page.click('button:has(text="10:00")');
+    // 3. Wait for 10:00 slot to appear (it's free)
+    await expect(page.locator('button:has(text="10:00")').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('button:has(text="10:00")').first().click();
 
-    // fill and submit
+    // 4. Fill in name
     await page.fill('input[placeholder="Введите имя"]', 'Latecomer');
+
+    // 5. Simulate race: another user books the same slot via API
+    await request.post('/api/bookings', {
+      data: { eventTypeId, guestName: 'Occupier', date, startTime: '10:00' },
+    });
+
+    // 6. Submit — server returns 409 CONFLICT
     await page.click('text=Забронировать');
 
-    // should see orange toast with suggestion
+    // 7. Should see orange toast with suggestion
     await expect(page.locator('text=Слот занят')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Следующий свободный')).toBeVisible();
   });
