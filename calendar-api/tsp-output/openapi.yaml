@@ -1,0 +1,276 @@
+openapi: 3.0.0
+info:
+  title: Calendar Booking API
+  version: 0.0.0
+tags: []
+paths:
+  /api/admin/bookings:
+    get:
+      operationId: AdminBookings_list
+      description: Получить все бронирования (админка)
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+  /api/admin/event-types:
+    get:
+      operationId: AdminEventTypes_list
+      description: Получить все типы событий (админка)
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+    post:
+      operationId: AdminEventTypes_create
+      description: Создать новый тип события
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/EventType'
+                  - $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventTypeRequest'
+  /api/admin/event-types/{id}:
+    delete:
+      operationId: AdminEventTypes_delete
+      description: Удалить тип события
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+  /api/bookings:
+    post:
+      operationId: Bookings_create
+      description: Создать новое бронирование
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Booking'
+                  - $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+  /api/bookings/{id}:
+    get:
+      operationId: Bookings_getBooking
+      description: Получить бронирование по id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/Booking'
+                  - $ref: '#/components/schemas/Error'
+  /api/event-types:
+    get:
+      operationId: EventTypes_list
+      description: Получить список всех типов событий
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventType'
+  /api/event-types/{id}:
+    get:
+      operationId: EventTypes_getEventType
+      description: Получить тип события по id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/EventType'
+                  - $ref: '#/components/schemas/Error'
+  /api/event-types/{id}/slots:
+    get:
+      operationId: Slots_getSlots
+      description: Получить свободные слоты для типа события на дату
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Slot'
+                  - $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Booking:
+      type: object
+      required:
+        - id
+        - eventTypeId
+        - guestName
+        - date
+        - startTime
+        - endTime
+      properties:
+        id:
+          type: string
+        eventTypeId:
+          type: string
+        guestName:
+          type: string
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+      description: Бронирование
+    CreateBookingRequest:
+      type: object
+      required:
+        - eventTypeId
+        - guestName
+        - date
+        - startTime
+      properties:
+        eventTypeId:
+          type: string
+        guestName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        date:
+          type: string
+        startTime:
+          type: string
+      description: Тело запроса на создание бронирования
+    CreateEventTypeRequest:
+      type: object
+      required:
+        - name
+        - description
+        - duration
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        duration:
+          type: integer
+          format: int32
+          minimum: 15
+          maximum: 480
+      description: Тело запроса на создание типа события (без id — сервер генерирует сам)
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      description: Ошибка
+    EventType:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - duration
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        duration:
+          type: integer
+          format: int32
+          minimum: 15
+          maximum: 480
+      description: Тип события, создаётся владельцем
+    Slot:
+      type: object
+      required:
+        - startTime
+        - endTime
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+      description: Свободный временной слот для записи

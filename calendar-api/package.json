@@ -1,0 +1,14 @@
+{
+  "name": "calendar-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "tsp compile ."
+  },
+  "dependencies": {
+    "@typespec/compiler": "^0.62.0",
+    "@typespec/http": "^0.62.0",
+    "@typespec/rest": "^0.62.0",
+    "@typespec/openapi3": "^0.62.0"
+  }
+}
