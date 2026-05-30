@@ -28,18 +28,15 @@ jobs:
       - name: Install Playwright browsers
         run: cd tests && npx playwright install chromium
 
-      - name: Run API tests
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Run all tests
         run: |
           cd backend && node src/index.js &
           npx wait-on http://127.0.0.1:4010/api/event-types
           cd ../tests && npx playwright test --project=api
-
-      - name: Build frontend
-        run: cd frontend && npm run build
-
-      - name: Run E2E tests
-        run: |
-          cd frontend && npx vite preview &
+          cd ../frontend && npx vite preview &
           npx wait-on http://localhost:5173
           cd ../tests && npx playwright test --project=e2e
 
