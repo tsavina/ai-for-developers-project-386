@@ -27,11 +27,11 @@ test.describe('Booking flow (E2E)', () => {
     await expect(page).toHaveURL(/\/event-types\//);
 
     // 3. Select the future date
-    const dateButton = page.locator(`button:has(text="${parseInt(day)}")`).first();
+    const dateButton = page.locator('button').filter({ hasText: `${parseInt(day)}` }).first();
     await dateButton.click();
 
     // 4. Wait for slots to appear and click first available slot
-    await expect(page.locator('button:has(text="09:00")').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('button').filter({ hasText: '09:00' }).first()).toBeVisible({ timeout: 5000 });
     await page.locator('text=09:00').first().click();
 
     // 5. Fill in guest name
@@ -58,12 +58,12 @@ test.describe('Booking flow (E2E)', () => {
     await page.goto(`/event-types/${eventTypeId}`);
 
     // 2. Select the future date
-    const dateButton = page.locator(`button:has(text="${parseInt(day)}")`).first();
+    const dateButton = page.locator('button').filter({ hasText: `${parseInt(day)}` }).first();
     await dateButton.click();
 
     // 3. Wait for 10:00 slot to appear (it's free)
-    await expect(page.locator('button:has(text="10:00")').first()).toBeVisible({ timeout: 5000 });
-    await page.locator('button:has(text="10:00")').first().click();
+    await expect(page.locator('button').filter({ hasText: '10:00' }).first()).toBeVisible({ timeout: 5000 });
+    await page.locator('button').filter({ hasText: '10:00' }).first().click();
 
     // 4. Fill in name
     await page.fill('input[placeholder="Введите имя"]', 'Latecomer');
