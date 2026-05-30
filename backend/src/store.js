@@ -52,3 +52,8 @@ export function getAllBookingsSorted() {
     return a.startTime.localeCompare(b.startTime);
   });
 }
+
+export function reset() {
+  eventTypes.length = 0;
+  bookings.length = 0;
+}

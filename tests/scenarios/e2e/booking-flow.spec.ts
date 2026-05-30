@@ -3,6 +3,8 @@ import { createEventType, futureDate } from '../../fixtures';
 
 test.describe('Booking flow (E2E)', () => {
   test.beforeEach(async ({ request }) => {
+    // Wipe all state left from previous tests/retries
+    await request.delete('/api/admin/reset');
     // Seed: ensure at least one event type exists
     await createEventType(request, { name: '30 min meeting', description: 'Quick video call', duration: 30 });
   });
@@ -77,7 +79,7 @@ test.describe('Booking flow (E2E)', () => {
     await page.click('text=Забронировать');
 
     // 7. Should see orange toast with suggestion
-    await expect(page.locator('text=Слот занят')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Слот занят').first()).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Следующий свободный')).toBeVisible();
   });
 });

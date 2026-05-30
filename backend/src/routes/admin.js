@@ -40,4 +40,10 @@ router.get('/bookings', (_req, res) => {
   res.json(store.getAllBookingsSorted());
 });
 
+// DELETE /api/admin/reset
+router.delete('/reset', (_req, res) => {
+  store.reset();
+  res.status(204).end();
+});
+
 export default router;
