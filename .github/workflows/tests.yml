@@ -35,10 +35,10 @@ jobs:
         run: |
           cd backend && node src/index.js &
           npx wait-on http://127.0.0.1:4010/api/event-types
-          cd ../tests && npx playwright test --project=api
-          cd ../frontend && npx vite preview &
+          cd tests && npx playwright test --project=api
+          cd frontend && npx vite preview &
           npx wait-on http://localhost:5173
-          cd ../tests && npx playwright test --project=e2e
+          cd tests && npx playwright test --project=e2e
 
       - uses: actions/upload-artifact@v4
         if: failure()
